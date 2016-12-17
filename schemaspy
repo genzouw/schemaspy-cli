@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+set -u
+set -e
+set -o noclobber
+
+# 先ほどJARファイルを配置したディレクトリ
+JAR_LIB_DIR=$HOME/local/lib
+
+opts='h:u:p:d:t:'
+
+function usage
+{
+  echo "* Usage:"
+  echo "  ${0} [-h DB_HOST] [-u DB_USER] [-p DB_PASSWORD] -t DB_TYPE -d DB_NAME"
+  echo "* DB_TYPE"
+  echo "  - mysql"
+  echo "  - pgsql"
+  echo "  - ..."
+  exit 1
+}
+
+# ここでは "PostgreSQL" に特化させました
+DB_TYPE=""
+# 接続対象DBホスト
+DB_HOST=localhost
+# 接続対象DB名
+DB_NAME=""
+# 接続対象DBユーザ
+DB_USER=$USER
+# 接続対象DBパスワード
+DB_PASS=""
+
+while getopts ":${opts}" opt ; do
+  case "${opt}" in
+    h)
+      DB_HOST="${OPTARG}"
+      ;;
+    u)
+      DB_USER="${OPTARG}"
+      ;;
+    p)
+      DB_PASS="${OPTARG}"
+      ;;
+    d)
+      DB_NAME="${OPTARG}"
+      ;;
+    t)
+      DB_TYPE="${OPTARG}"
+      ;;
+    :|\?)
+      usage
+      ;;
+  esac
+done
+
+# 最後に名前無し引数があった場合はDB_NAMEとして扱う
+shift $(($OPTIND -1))
+DB_NAME=${1:-$DB_NAME}
+
+if [ -z ${DB_TYPE} ] || [ -z ${DB_HOST} ] || [ -z ${DB_USER} ] || [ -z ${DB_NAME} ]; then
+  usage
+  exit 1
+fi
+
+
+# 関連ライブラリの有無をチェックし、必要ならインストールします
+(which yum > /dev/null) && (
+  (which java > /dev/null) || sudo yum install -y java-1.8.0-openjdk-devel
+  (which dot > /dev/null) || sudo yum install -y 'graphviz*'
+  (which wget > /dev/null) || sudo yum install -y 'wget'
+)
+(
+  [ ! -d "${JAR_LIB_DIR}" ] && mkdir -p "${JAR_LIB_DIR}"; cd "${JAR_LIB_DIR}"
+
+  [ -f "${JAR_LIB_DIR}/schemaSpy_5.0.0.jar"  ] || wget http://jaist.dl.sourceforge.net/project/schemaspy/schemaspy/SchemaSpy%205.0.0/schemaSpy_5.0.0.jar
+
+  case ${DB_TYPE} in
+      "pgsql")
+          [ -f "${JAR_LIB_DIR}/postgresql-9.4.1212.jar"  ] || wget https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
+          ;;
+      "mysql")
+          [ -f "${JAR_LIB_DIR}/mysql-connector-java-5.1.40-bin.jar"  ] || wget http://cdn.mysql.com//Downloads/Connector-J/mysql-connector-java-5.1.40.tar.gz
+          tar xf mysql-connector-java-5.1.40.tar.gz; cp mysql-connector-java-5.1.40/mysql-connector-java-5.1.40-bin.jar mysql-connector-java-5.1.40-bin.jar
+          ;;
+  esac
+)
+
+
+# ER図生成
+[ ! -d "./${DB_NAME}" ] && mkdir -p "./${DB_NAME}"
+
+JAR_LIB_PATH=${JAR_LIB_PATH:-$(echo ${JAR_LIB_DIR}/*.jar| sed "s/ /:/g")}
+
+# -hq           :ハイクオリティモード。出力結果がきれいになる！
+# -noimplied    :「外部キーがない既存テーブル間の関連を推測し、ER図に反映してくれる」機能をOFFにする
+java \
+  -jar      "${JAR_LIB_DIR}/schemaSpy_5.0.0.jar" \
+  -hq \
+  -o        "./${DB_NAME}" \
+  -charset  utf-8 \
+  -dp       "${JAR_LIB_PATH}" \
+  -t        "${DB_TYPE}" \
+  -host     "${DB_HOST}" \
+  -s        "public" \
+  -db       "${DB_NAME}" \
+  -u        "${DB_USER}" \
+  -p        "${DB_PASS}" \
+;
+
