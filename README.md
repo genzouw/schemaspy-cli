@@ -11,6 +11,14 @@ git clone git@github.com:genzouw/schemaspy-cli.git
 export PATH="$PATH:~/local/src/schemaspy"
 ```
 
+# Required
+
+*Notice: Your OS is Redhat Family, Libraries will be installed automatically.*
+
+* Java (JRE)
+* JDBC Driver (for your database)
+
+
 # Usage
 
 ```bash
