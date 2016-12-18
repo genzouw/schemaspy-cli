@@ -96,6 +96,7 @@ JAR_LIB_PATH=${JAR_LIB_PATH:-$(echo ${JAR_LIB_DIR}/*.jar| sed "s/ /:/g")}
 java \
   -jar      "${JAR_LIB_DIR}/schemaSpy_5.0.0.jar" \
   -hq \
+  -noimplied \
   -o        "./${DB_NAME}" \
   -charset  utf-8 \
   -dp       "${JAR_LIB_PATH}" \
