@@ -1,5 +1,7 @@
 # schemaspy-cli
-schemaspy bash interface
+
+schemaspy commandline interface
+
 
 # Install
 
