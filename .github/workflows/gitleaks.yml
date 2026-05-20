@@ -1,0 +1,60 @@
+name: Gitleaks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # 毎週月曜 05:00 JST (= 日曜 20:00 UTC) に履歴全体を再スキャン
+    - cron: "0 20 * * 0"
+  workflow_dispatch:
+
+concurrency:
+  group: gitleaks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  gitleaks:
+    name: Scan for leaked secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        with:
+          # 履歴全体をスキャンするためフルクローン
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          GITLEAKS_VERSION=8.30.1
+          GITLEAKS_SHA256=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          GITLEAKS_ARCHIVE="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSLO "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${GITLEAKS_ARCHIVE}"
+          echo "${GITLEAKS_SHA256}  ${GITLEAKS_ARCHIVE}" | sha256sum -c -
+          tar -xzf "${GITLEAKS_ARCHIVE}" gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Run gitleaks
+        run: |
+          gitleaks detect \
+            --source . \
+            --redact \
+            --verbose \
+            --no-banner \
+            --exit-code 1 \
+            --report-format sarif \
+            --report-path gitleaks.sarif
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@f411752efdf656cb71aa17b755b22c890960da1d # v3.35.5
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
