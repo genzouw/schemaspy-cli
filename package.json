@@ -1,0 +1,15 @@
+{
+  "name": "schemaspy-cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tooling configuration for schemaspy-cli quality checks (commitlint).",
+  "scripts": {
+    "commitlint": "commitlint --edit"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@commitlint/types": "^19.5.0"
+  }
+}
