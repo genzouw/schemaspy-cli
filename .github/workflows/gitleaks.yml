@@ -7,7 +7,7 @@ on:
     branches: [main]
   schedule:
     # 毎週月曜 05:00 JST (= 日曜 20:00 UTC) に履歴全体を再スキャン
-    - cron: '0 20 * * 0'
+    - cron: "0 20 * * 0"
   workflow_dispatch:
 
 concurrency:
@@ -51,7 +51,7 @@ jobs:
 
       - name: Upload SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@78ed0c7291d93e40c51b085850dc669a4c3ab73b # v3
+        uses: github/codeql-action/upload-sarif@f411752efdf656cb71aa17b755b22c890960da1d # v3.35.5
         with:
           sarif_file: gitleaks.sarif
           category: gitleaks
