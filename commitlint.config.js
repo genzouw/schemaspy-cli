@@ -1,0 +1,10 @@
+/** @type {import('@commitlint/types').UserConfig} */
+export default {
+  extends: ["@commitlint/config-conventional"],
+  rules: {
+    "header-max-length": [2, "always", 70],
+    "scope-case": [2, "always", ["camel-case", "kebab-case", "upper-case"]],
+    "subject-case": [0, "always"],
+    "body-max-line-length": [2, "always", 120],
+  },
+};
