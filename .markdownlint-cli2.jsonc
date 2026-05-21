@@ -13,8 +13,6 @@
     "MD024": { "siblings_only": true },
     // 最初の行が H1 でなくてもよい (PR テンプレなど)
     "MD041": false,
-    // 強調を見出しに使ってよい
-    "MD036": false,
     // bare URL を許可 (GitHub flavored Markdown で自動リンク化される)
     "MD034": false,
     // テーブル列スタイル: 重要度が低いため無効化
