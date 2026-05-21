@@ -1,0 +1,86 @@
+# CodeRabbit configuration
+# https://docs.coderabbit.ai/reference/configuration
+
+language: 'ja-JP'
+early_access: false
+enable_free_tier: true
+
+reviews:
+  # SchemaSpy のラッパー CLI (シェル + Node.js パッケージング) を OSS として配布しているリポジトリのため、利用者環境への影響を取りこぼしたくない。
+  # "assertive" で検出感度を高めに保ち、ノイズが過剰になった場合は "chill" に戻すことも検討する。
+  profile: 'assertive'
+
+  # PR 全体に対する指針。path_instructions に "**/*" を入れるとファイル毎に
+  # 繰り返し適用されてノイズが増えるため、広範な指示は instructions に集約する。
+  instructions: |
+    変更がプロジェクト全体に与える影響や、アーキテクチャの観点など、広いスコープからコードレビューを行ってください。必ず日本語でコメントしてください。
+    OSS として配布される Docker イメージ／CLI ツールのリポジトリであることを考慮し、以下の観点を強調し、重要視して必ずレビューに盛り込んでください:
+    - 認証情報、API キー、トークン、内部 URL などの秘密情報がコード・ログ・イメージ層に混入していないこと。
+    - 任意コード実行・コマンドインジェクション・パストラバーサルなど、利用者環境を危険にさらす脆弱性が無いこと。
+    - 入力検証（引数 / 標準入力 / 環境変数）が抜けていないこと。
+
+  # CodeRabbit を bot reviewer として動作させる。問題なしと判断した PR に対して
+  # Approve ステータスを返す。個人運営での self-merge 運用 (PR 作成者は自分の
+  # PR を承認できない GitHub 仕様) を補助する目的で有効化。Approve は最終判断
+  # ではなく補助。
+  request_changes_workflow: true
+
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+
+  path_instructions:
+    - path: '**/*.sh'
+      instructions: |
+        シェルスクリプトとしてレビューしてください:
+        - `set -euo pipefail` 相当のエラー伝播設定が入っているか。
+        - 変数展開のクォート漏れ・単語分割によるバグや任意コード実行の余地が無いか。
+        - 外部入力をそのまま `eval` / `sh -c` へ流していないか。
+    - path: '**/*.{js,mjs,cjs}'
+      instructions: |
+        Node.js / JavaScript コードとしてレビューしてください:
+        - 外部入力をそのまま `eval` / `Function` / `child_process.exec` へ流していないか。
+        - 例外を握り潰さず、ログ／終了コードが妥当に扱われているか。
+        - 依存パッケージのバージョン整合・既知脆弱性の混入が無いか。
+    - path: '.github/workflows/**'
+      instructions: |
+        GitHub Actions ワークフローとしてレビューしてください:
+        - シークレットの露出 (echo / set-output 経由のリーク) が無いか。
+        - 外部 action は SHA pin されているか。
+        - permissions: が最小権限になっているか。
+
+  # 生成物 / 依存物 / ロックファイルなどはレビュー対象から除外する。
+  path_filters:
+    - '!**/dist/**'
+    - '!**/build/**'
+    - '!**/coverage/**'
+    - '!**/node_modules/**'
+    - '!**/.wrangler/**'
+    - '!**/.turbo/**'
+    - '!**/.next/**'
+    - '!infra/cdktf.out/**'
+    - '!infra/.gen/**'
+    - '!**/bun.lock'
+    - '!**/package-lock.json'
+    - '!**/yarn.lock'
+    - '!**/pnpm-lock.yaml'
+    - '!**/*.min.js'
+    - '!**/*.min.css'
+    - '!**/*.map'
+    - '!**/*.snap'
+    - '!**/*.tsbuildinfo'
+
+  abort_on_close: true
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  opt_out: false
