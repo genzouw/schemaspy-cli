@@ -44,9 +44,9 @@ reviews:
         - 変数展開のクォート漏れ・単語分割によるバグや任意コード実行の余地が無いか。
         - 外部入力をそのまま `eval` / `sh -c` へ流していないか。
         - 外部リソース（JAR / バイナリ等）の取得に HTTPS が使われているか、またチェックサム（SHA-256 等）による完全性検証が行われているか。
-    - path: "**/*.{js,mjs,cjs}"
+    - path: "**/*.{js,mjs,cjs,ts,mts,cts}"
       instructions: |
-        Node.js / JavaScript コードとしてレビューしてください:
+        Node.js / JavaScript / TypeScript コードとしてレビューしてください:
         - 外部入力をそのまま `eval` / `Function` / `child_process.exec` へ流していないか。
         - 例外を握り潰さず、ログ／終了コードが妥当に扱われているか。
         - 依存パッケージのバージョン整合・既知脆弱性の混入が無いか。
