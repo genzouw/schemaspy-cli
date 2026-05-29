@@ -2,7 +2,7 @@
 
 schemaspy commandline interface
 
-*Please contact me anytime if you have a problem or request! My information is posted at the bottom of this document.*
+_Please contact me anytime if you have a problem or request! My information is posted at the bottom of this document._
 
 # Install
 
@@ -16,11 +16,10 @@ export PATH="$PATH:~/local/src/schemaspy"
 
 # Required
 
-*Notice: Your OS is Redhat Family, Libraries will be installed automatically.*
+_Notice: Your OS is Redhat Family, Libraries will be installed automatically._
 
-* Java (JRE)
-* JDBC Driver (for your database)
-
+- Java (JRE)
+- JDBC Driver (for your database)
 
 # Usage
 
@@ -38,16 +37,14 @@ You can use follow database type.
 
 You want to know detail, refer [this page](http://schemaspy.sourceforge.net/)
 
-
 ## License
 
 This software is released under the MIT License, see LICENSE.
-
 
 ## Author Information
 
 [genzouw](https://genzouw.com)
 
-* Twitter   : @genzouw ( https://twitter.com/genzouw )
-* Facebook  : genzouw ( https://www.facebook.com/genzouw )
-* Gmail     : genzouw@gmail.com
+- Twitter : @genzouw ( https://twitter.com/genzouw )
+- Facebook : genzouw ( https://www.facebook.com/genzouw )
+- Gmail : genzouw@gmail.com
