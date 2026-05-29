@@ -45,6 +45,6 @@ This software is released under the MIT License, see LICENSE.
 
 [genzouw](https://genzouw.com)
 
-- Twitter : @genzouw ( https://twitter.com/genzouw )
-- Facebook : genzouw ( https://www.facebook.com/genzouw )
-- Gmail : genzouw@gmail.com
+- Twitter : @genzouw ( <https://twitter.com/genzouw> )
+- Facebook : genzouw ( <https://www.facebook.com/genzouw> )
+- Gmail : <genzouw@gmail.com>
