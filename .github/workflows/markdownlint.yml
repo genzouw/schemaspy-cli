@@ -4,15 +4,19 @@ on:
   push:
     branches: [main]
     paths:
-      - '**/*.md'
-      - '.markdownlint-cli2.jsonc'
-      - '.github/workflows/markdownlint.yml'
+      - "**/*.md"
+      - ".markdownlint-cli2.jsonc"
+      - ".github/workflows/markdownlint.yml"
   pull_request:
     branches: [main]
     paths:
-      - '**/*.md'
-      - '.markdownlint-cli2.jsonc'
-      - '.github/workflows/markdownlint.yml'
+      - "**/*.md"
+      - ".markdownlint-cli2.jsonc"
+      - ".github/workflows/markdownlint.yml"
+  # Actions allowlist 適用前の startup_failure や、依存 action 側の
+  # 一時的な障害から復旧した際に、md ファイルを触らずに lint を再走させたい
+  # ケースがあるため手動トリガーを用意する。
+  workflow_dispatch:
 
 concurrency:
   group: markdownlint-${{ github.ref }}
@@ -36,5 +40,5 @@ jobs:
       - name: Run markdownlint-cli2
         uses: DavidAnson/markdownlint-cli2-action@992badcdf24e3b8eb7e87ff9287fe931bcb00c6e # v20
         with:
-          config: '.markdownlint-cli2.jsonc'
-          globs: '**/*.md'
+          config: ".markdownlint-cli2.jsonc"
+          globs: "**/*.md"
