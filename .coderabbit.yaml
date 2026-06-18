@@ -6,6 +6,8 @@ early_access: false
 enable_free_tier: true
 
 reviews:
+  planning:
+    enabled: true
   # SchemaSpy のラッパー CLI (シェル + Node.js パッケージング) を OSS として配布しているリポジトリのため、利用者環境への影響を取りこぼしたくない。
   # "assertive" で検出感度を高めに保ち、ノイズが過剰になった場合は "chill" に戻すことも検討する。
   profile: "assertive"
@@ -85,4 +87,8 @@ chat:
   auto_reply: true
 
 knowledge_base:
+  web_search: true
   opt_out: false
+
+issue_enrichment:
+  auto_enrich: true
