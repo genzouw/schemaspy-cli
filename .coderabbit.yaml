@@ -87,8 +87,7 @@ chat:
   auto_reply: true
 
 knowledge_base:
-  web_search:
-    enabled: true
+  web_search: true
   opt_out: false
 
 issue_enrichment:
