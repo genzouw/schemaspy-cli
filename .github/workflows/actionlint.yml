@@ -1,0 +1,98 @@
+name: actionlint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - '.github/actionlint*'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - '.github/actionlint*'
+
+concurrency:
+  group: actionlint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Download actionlint
+        id: actionlint
+        run: |
+          set -euo pipefail
+          VERSION=1.7.12
+          TARBALL="actionlint_${VERSION}_linux_amd64.tar.gz"
+          curl -fsSL -o "/tmp/${TARBALL}" "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/${TARBALL}"
+          curl -fsSL -o /tmp/checksums.txt "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_checksums.txt"
+          cd /tmp && grep "${TARBALL}" checksums.txt | sha256sum -c -
+          tar -xzf "/tmp/${TARBALL}" -C /tmp actionlint
+          echo "executable=/tmp/actionlint" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies (shellcheck, pyflakes)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck pyflakes3
+          if [ ! -e /usr/bin/pyflakes ]; then
+            sudo ln -s /usr/bin/pyflakes3 /usr/bin/pyflakes
+          fi
+
+      - name: Run actionlint
+        run: |
+          "${{ steps.actionlint.outputs.executable }}" -color
+
+      - name: Reject mutable branch references in `uses:`
+        # 外部 Action を `@main` 等のブランチ追跡で参照すると、上流のリポジトリ
+        # リネーム時に `startup_failure` を起こす（cf. PR #137 で発生）ほか、
+        # 不意な破壊的変更を取り込むリスクがある。可変ブランチ参照を禁止し、
+        # コミット SHA でのピン留めを CI で強制する。
+        # （タグ参照 `@v1` の検出は zizmor 等の専用ツールに任せ、ここでは
+        #  実害の大きいブランチ参照のみを最小コストで弾く方針）
+        #
+        # grep のパターンには 2 つの工夫を入れている:
+        #  1. `u[s]es:` で `uses:` リテラルを文字クラスに分解 → 本ステップ自身
+        #     が自分の検出パターンに hit するのを防ぐ（self-match 回避）。
+        #  2. 行頭アンカー `^[[:space:]]*-?[[:space:]]*` で YAML キー位置に
+        #     限定し、コメントや文字列内の偶発的な `uses:` を除外。加えて
+        #     `--include='*.yml' --include='*.yaml'` で対象拡張子を絞る。
+        run: |
+          set -euo pipefail
+          violations=$(grep -rEn \
+            --include='*.yml' --include='*.yaml' \
+            '^[[:space:]]*-?[[:space:]]*u[s]es:[[:space:]]+[^@[:space:]]+@(main|master|develop|trunk|HEAD)([[:space:]]|$)' \
+            .github/workflows || true)
+          if [ -n "$violations" ]; then
+            echo "::error::外部 Action 参照に可変ブランチが使われています。コミット SHA でピン留めしてください:"
+            echo "$violations"
+            echo ""
+            echo "修正方法: \`uses: owner/repo@<40桁SHA> # v1.2.3\` の形式に書き換える。"
+            exit 1
+          fi
+          echo "✅ 全ての外部 Action 参照がブランチ追跡を回避できています。"
+
+      - name: Reject pull_request_target
+        run: |
+          set -euo pipefail
+          violations=$(grep -rEn \
+            --include='*.yml' --include='*.yaml' \
+            '^[[:space:]]*pull_request_targ[e]t:' \
+            .github/workflows || true)
+          if [ -n "$violations" ]; then
+            echo "::error::フォークPRからのシークレット漏洩リスクがあるため、pull_request_target の使用は禁止されています:"
+            echo "$violations"
+            echo ""
+            echo "修正方法: 通常の \`pull_request\` トリガーを使用してください。"
+            exit 1
+          fi
+          echo "✅ pull_request_target の使用はありません。"
