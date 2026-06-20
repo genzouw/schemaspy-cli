@@ -8,7 +8,7 @@
     "commitlint": "commitlint --edit"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.5.0",
+    "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^19.5.0",
     "@commitlint/types": "^19.5.0"
   }
