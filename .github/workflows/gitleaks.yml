@@ -23,7 +23,7 @@ jobs:
     name: Scan for leaked secrets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # 履歴全体をスキャンするためフルクローン
           fetch-depth: 0
