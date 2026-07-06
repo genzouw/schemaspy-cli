@@ -1,5 +1,8 @@
 name: markdownlint
 
+# 本ワークフローは genzouw/ci-workflows の reusable workflow を呼び出す薄いスタブ。
+# ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
+# 参照 SHA の更新は Dependabot (github-actions ecosystem) が自動で PR を出す。
 on:
   push:
     branches: [main, master]
@@ -23,20 +26,4 @@ permissions:
 
 jobs:
   markdownlint:
-    name: markdownlint-cli2
-    runs-on: ubuntu-latest
-    # 既存ドキュメントの違反を片付けるまでは赤検知にしない。
-    # 整備完了後に continue-on-error を外して赤検知に切り替える。
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Run markdownlint-cli2
-        # v23.x 以降は Node.js 24 ランタイム要求のため startup_failure する。
-        # GitHub Actions runner が node24 を正式サポートするまで v22.0.0 で固定する。
-        uses: DavidAnson/markdownlint-cli2-action@07035fd053f7be764496c0f8d8f9f41f98305101 # v22.0.0
-        with:
-          config: '.markdownlint-cli2.jsonc'
-          globs: '**/*.md'
+    uses: genzouw/ci-workflows/.github/workflows/markdownlint.yml@28d2b9b6f563eb1126e786f28e308390b2558a47 # v1.0.1

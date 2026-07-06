@@ -1,5 +1,8 @@
 name: shellcheck
 
+# 本ワークフローは genzouw/ci-workflows の reusable workflow を呼び出す薄いスタブ。
+# ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
+# 参照 SHA の更新は Dependabot (github-actions ecosystem) が自動で PR を出す。
 on:
   push:
     branches: [main, master]
@@ -21,25 +24,4 @@ permissions:
 
 jobs:
   shellcheck:
-    name: ShellCheck (shell script lint)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Run shellcheck
-        run: |
-          set -euo pipefail
-          # ランナー同梱の shellcheck を使用する（バージョンはログで確認できるよう出力）。
-          shellcheck --version
-          # リポジトリ内の全シェルスクリプトを対象に lint する。
-          # サードパーティ由来の vendor / node_modules 配下は対象外。
-          mapfile -t scripts < <(git ls-files '*.sh' | grep -viE '(^|/)(vendor|node_modules)/' || true)
-          if [ "${#scripts[@]}" -eq 0 ]; then
-            echo "シェルスクリプトが見つかりませんでした。スキップします。"
-            exit 0
-          fi
-          printf 'lint 対象: %s\n' "${scripts[@]}"
-          shellcheck --severity=warning "${scripts[@]}"
+    uses: genzouw/ci-workflows/.github/workflows/shellcheck.yml@28d2b9b6f563eb1126e786f28e308390b2558a47 # v1.0.1

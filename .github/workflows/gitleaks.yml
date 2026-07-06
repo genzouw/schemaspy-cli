@@ -1,5 +1,9 @@
 name: Gitleaks
 
+# 本ワークフローは genzouw/ci-workflows の reusable workflow を呼び出す薄いスタブ。
+# ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
+# 参照 SHA の更新は Dependabot (github-actions ecosystem) が自動で PR を出す。
+# 必須チェック (context: "gitleaks / Scan for leaked secrets") のため paths フィルタ禁止。
 on:
   push:
     branches: [main, master]
@@ -20,42 +24,4 @@ permissions:
 
 jobs:
   gitleaks:
-    name: Scan for leaked secrets
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          # 履歴全体をスキャンするためフルクローン
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Install gitleaks
-        run: |
-          set -euo pipefail
-          GITLEAKS_VERSION=8.21.2
-          TARBALL="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -fsSLO "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${TARBALL}"
-          curl -fsSLo checksums.txt "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
-          grep " ${TARBALL}$" checksums.txt | sha256sum -c -
-          tar -xzf "${TARBALL}" gitleaks
-          sudo mv gitleaks /usr/local/bin/gitleaks
-          gitleaks version
-
-      - name: Run gitleaks
-        run: |
-          gitleaks detect \
-            --source . \
-            --log-opts="--all" \
-            --redact \
-            --verbose \
-            --no-banner \
-            --exit-code 1 \
-            --report-format sarif \
-            --report-path gitleaks.sarif
-
-      - name: Upload SARIF
-        if: always()
-        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
-        with:
-          sarif_file: gitleaks.sarif
-          category: gitleaks
+    uses: genzouw/ci-workflows/.github/workflows/gitleaks.yml@28d2b9b6f563eb1126e786f28e308390b2558a47 # v1.0.1

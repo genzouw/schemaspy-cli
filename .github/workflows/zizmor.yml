@@ -1,5 +1,9 @@
 name: zizmor
 
+# 本ワークフローは genzouw/ci-workflows の reusable workflow を呼び出す薄いスタブ。
+# ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
+# 参照 SHA の更新は Dependabot (github-actions ecosystem) が自動で PR を出す。
+# 必須チェック (context: "zizmor / zizmor") のため paths フィルタ禁止。
 on:
   push:
     branches: ['**']
@@ -7,37 +11,14 @@ on:
     branches: ['**']
 
 concurrency:
-  group: zizmor-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: zizmor-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
+  security-events: write
+  actions: read
 
 jobs:
   zizmor:
-    name: zizmor
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      contents: read
-      actions: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@d31148d669074a8d0a63714ba94f3201e7020bc3 # v8.3.0
-
-      - name: Run zizmor 🌈
-        run: uvx zizmor --format sarif . > results.sarif
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
-
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
-        with:
-          sarif_file: results.sarif
-          category: zizmor
+    uses: genzouw/ci-workflows/.github/workflows/zizmor.yml@28d2b9b6f563eb1126e786f28e308390b2558a47 # v1.0.1

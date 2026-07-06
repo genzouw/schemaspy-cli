@@ -1,5 +1,9 @@
 name: Trivy Scan
 
+# 本ワークフローは genzouw/ci-workflows の reusable workflow を呼び出す薄いスタブ。
+# ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
+# 参照 SHA の更新は Dependabot (github-actions ecosystem) が自動で PR を出す。
+# 必須チェック (context: "trivy / Trivy filesystem scan") のため paths フィルタ禁止。
 on:
   push:
     branches: [main, master]
@@ -14,58 +18,9 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  # チェックアウト・リポジトリ参照用
   contents: read
-  # Trivy スキャン結果を GitHub Security タブへアップロードするために必要
   security-events: write
 
 jobs:
-  fs-scan:
-    name: Trivy filesystem scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Install Trivy
-        env:
-          TRIVY_VERSION: v0.70.0
-        run: |
-          ARCH=Linux-64bit
-          BASE_URL="https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}"
-          TARBALL="trivy_${TRIVY_VERSION#v}_${ARCH}.tar.gz"
-          curl -sSfL -o "${TARBALL}" "${BASE_URL}/${TARBALL}"
-          curl -sSfL -o trivy_checksums.txt "${BASE_URL}/trivy_${TRIVY_VERSION#v}_checksums.txt"
-          grep "${TARBALL}" trivy_checksums.txt | sha256sum -c -
-          tar -xzf "${TARBALL}" trivy
-          sudo install -m 0755 trivy /usr/local/bin/trivy
-
-      - name: Run Trivy (vulnerabilities)
-        run: |
-          trivy fs \
-            --format sarif \
-            --output trivy-fs.sarif \
-            --severity CRITICAL,HIGH \
-            --ignore-unfixed \
-            --scanners vuln \
-            --exit-code 0 \
-            .
-
-      - name: Run Trivy (misconfig & secret)
-        # 既存 Dockerfile の misconfig (root 実行・HEALTHCHECK 欠如等) を片付ける
-        # までは赤検知にしない (exit-code 0 = レポートのみ)。整備完了後に
-        # exit-code 1 へ戻して赤検知に切り替える。
-        run: |
-          trivy fs \
-            --severity CRITICAL,HIGH \
-            --scanners misconfig,secret \
-            --exit-code 0 \
-            .
-
-      - name: Upload SARIF to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
-        with:
-          sarif_file: 'trivy-fs.sarif'
-          category: trivy-fs
+  trivy:
+    uses: genzouw/ci-workflows/.github/workflows/trivy.yml@28d2b9b6f563eb1126e786f28e308390b2558a47 # v1.0.1
