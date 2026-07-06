@@ -4,17 +4,17 @@ on:
   push:
     branches: [main, master]
     paths:
-      - "**/Dockerfile"
-      - "**/Dockerfile.*"
-      - ".hadolint.yaml"
-      - ".github/workflows/hadolint.yml"
+      - '**/Dockerfile'
+      - '**/Dockerfile.*'
+      - '.hadolint.yaml'
+      - '.github/workflows/hadolint.yml'
   pull_request:
     branches: [main, master]
     paths:
-      - "**/Dockerfile"
-      - "**/Dockerfile.*"
-      - ".hadolint.yaml"
-      - ".github/workflows/hadolint.yml"
+      - '**/Dockerfile'
+      - '**/Dockerfile.*'
+      - '.hadolint.yaml'
+      - '.github/workflows/hadolint.yml'
 
 concurrency:
   group: hadolint-${{ github.ref }}

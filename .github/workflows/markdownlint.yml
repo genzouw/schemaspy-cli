@@ -4,15 +4,15 @@ on:
   push:
     branches: [main, master]
     paths:
-      - "**/*.md"
-      - ".markdownlint-cli2.jsonc"
-      - ".github/workflows/markdownlint.yml"
+      - '**/*.md'
+      - '.markdownlint-cli2.jsonc'
+      - '.github/workflows/markdownlint.yml'
   pull_request:
     branches: [main, master]
     paths:
-      - "**/*.md"
-      - ".markdownlint-cli2.jsonc"
-      - ".github/workflows/markdownlint.yml"
+      - '**/*.md'
+      - '.markdownlint-cli2.jsonc'
+      - '.github/workflows/markdownlint.yml'
 
 concurrency:
   group: markdownlint-${{ github.ref }}
@@ -38,5 +38,5 @@ jobs:
         # GitHub Actions runner が node24 を正式サポートするまで v22.0.0 で固定する。
         uses: DavidAnson/markdownlint-cli2-action@07035fd053f7be764496c0f8d8f9f41f98305101 # v22.0.0
         with:
-          config: ".markdownlint-cli2.jsonc"
-          globs: "**/*.md"
+          config: '.markdownlint-cli2.jsonc'
+          globs: '**/*.md'

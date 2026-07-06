@@ -7,7 +7,7 @@ on:
     branches: [main, master]
   schedule:
     # 毎週月曜 04:00 JST (= 日曜 19:00 UTC) に再スキャンして新規 CVE を拾う
-    - cron: "0 19 * * 0"
+    - cron: '0 19 * * 0'
 
 concurrency:
   group: trivy-${{ github.ref }}
@@ -67,5 +67,5 @@ jobs:
         if: always()
         uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
-          sarif_file: "trivy-fs.sarif"
+          sarif_file: 'trivy-fs.sarif'
           category: trivy-fs

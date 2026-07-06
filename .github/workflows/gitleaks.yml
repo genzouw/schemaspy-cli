@@ -7,7 +7,7 @@ on:
     branches: [main, master]
   schedule:
     # 毎週月曜 05:00 JST (= 日曜 20:00 UTC) に履歴全体を再スキャン
-    - cron: "0 20 * * 0"
+    - cron: '0 20 * * 0'
   workflow_dispatch:
 
 concurrency:
