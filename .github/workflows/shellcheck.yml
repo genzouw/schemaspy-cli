@@ -1,0 +1,45 @@
+name: shellcheck
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - '**/*.sh'
+      - '.github/workflows/shellcheck.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - '**/*.sh'
+      - '.github/workflows/shellcheck.yml'
+
+concurrency:
+  group: shellcheck-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    name: ShellCheck (shell script lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Run shellcheck
+        run: |
+          set -euo pipefail
+          # ランナー同梱の shellcheck を使用する（バージョンはログで確認できるよう出力）。
+          shellcheck --version
+          # リポジトリ内の全シェルスクリプトを対象に lint する。
+          # サードパーティ由来の vendor / node_modules 配下は対象外。
+          mapfile -t scripts < <(git ls-files '*.sh' | grep -viE '(^|/)(vendor|node_modules)/' || true)
+          if [ "${#scripts[@]}" -eq 0 ]; then
+            echo "シェルスクリプトが見つかりませんでした。スキップします。"
+            exit 0
+          fi
+          printf 'lint 対象: %s\n' "${scripts[@]}"
+          shellcheck --severity=warning "${scripts[@]}"

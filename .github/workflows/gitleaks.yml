@@ -2,12 +2,12 @@ name: Gitleaks
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
   schedule:
     # 毎週月曜 05:00 JST (= 日曜 20:00 UTC) に履歴全体を再スキャン
-    - cron: "0 20 * * 0"
+    - cron: '0 20 * * 0'
   workflow_dispatch:
 
 concurrency:
@@ -32,12 +32,12 @@ jobs:
       - name: Install gitleaks
         run: |
           set -euo pipefail
-          GITLEAKS_VERSION=8.30.1
-          GITLEAKS_SHA256=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
-          GITLEAKS_ARCHIVE="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-          curl -fsSLO "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${GITLEAKS_ARCHIVE}"
-          echo "${GITLEAKS_SHA256}  ${GITLEAKS_ARCHIVE}" | sha256sum -c -
-          tar -xzf "${GITLEAKS_ARCHIVE}" gitleaks
+          GITLEAKS_VERSION=8.21.2
+          TARBALL="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSLO "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${TARBALL}"
+          curl -fsSLo checksums.txt "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          grep " ${TARBALL}$" checksums.txt | sha256sum -c -
+          tar -xzf "${TARBALL}" gitleaks
           sudo mv gitleaks /usr/local/bin/gitleaks
           gitleaks version
 
@@ -45,6 +45,7 @@ jobs:
         run: |
           gitleaks detect \
             --source . \
+            --log-opts="--all" \
             --redact \
             --verbose \
             --no-banner \
@@ -54,7 +55,7 @@ jobs:
 
       - name: Upload SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: gitleaks.sarif
           category: gitleaks

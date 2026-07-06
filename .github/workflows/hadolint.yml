@@ -1,0 +1,72 @@
+name: hadolint
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - '**/Dockerfile'
+      - '**/Dockerfile.*'
+      - '.hadolint.yaml'
+      - '.github/workflows/hadolint.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - '**/Dockerfile'
+      - '**/Dockerfile.*'
+      - '.hadolint.yaml'
+      - '.github/workflows/hadolint.yml'
+
+concurrency:
+  group: hadolint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  hadolint:
+    name: Hadolint (Dockerfile lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # 既存 Dockerfile の DL3008/DL3018 等の指摘を片付けるまでは赤検知にしない。
+    # 整備完了後に continue-on-error を外して赤検知に切り替える。
+    continue-on-error: true
+    env:
+      HADOLINT_VERSION: v2.12.0
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install hadolint
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -eu
+          # 供給網攻撃対策として公式の .sha256 を併せて取得し整合性検証を行う。
+          # 公式 .sha256 にはオリジナルのファイル名が記載されるため、
+          # ハッシュのみを抜き出してローカル保存名と照合する。
+          curl --fail --silent --show-error --location \
+            --retry 3 --retry-all-errors --retry-delay 2 \
+            --connect-timeout 10 --max-time 120 \
+            -o hadolint \
+            "https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64"
+          curl --fail --silent --show-error --location \
+            --retry 3 --retry-all-errors --retry-delay 2 \
+            --connect-timeout 10 --max-time 120 \
+            -o hadolint.sha256 \
+            "https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64.sha256"
+          expected_sha=$(awk '{print $1}' hadolint.sha256)
+          echo "${expected_sha}  hadolint" | sha256sum -c -
+          chmod +x hadolint
+
+      - name: Run hadolint
+        run: |
+          set -eu
+          # リポジトリ内の全 Dockerfile を対象に lint する。
+          mapfile -t dockerfiles < <(git ls-files '*Dockerfile' '*Dockerfile.*')
+          if [ "${#dockerfiles[@]}" -eq 0 ]; then
+            echo "Dockerfile が見つかりませんでした。スキップします。"
+            exit 0
+          fi
+          printf 'lint 対象: %s\n' "${dockerfiles[@]}"
+          "${RUNNER_TEMP}/hadolint" "${dockerfiles[@]}"
