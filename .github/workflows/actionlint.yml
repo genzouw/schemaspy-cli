@@ -1,5 +1,8 @@
 name: actionlint
 
+# 本ワークフローは genzouw/ci-workflows の reusable workflow を呼び出す薄いスタブ。
+# ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
+# 参照 SHA の更新は Dependabot (github-actions ecosystem) が自動で PR を出す。
 on:
   push:
     branches: [main, master]
@@ -21,80 +24,4 @@ permissions:
 
 jobs:
   actionlint:
-    name: actionlint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Download actionlint
-        id: actionlint
-        run: |
-          set -euo pipefail
-          VERSION=1.7.12
-          TARBALL="actionlint_${VERSION}_linux_amd64.tar.gz"
-          curl -fsSL -o "/tmp/${TARBALL}" "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/${TARBALL}"
-          curl -fsSL -o /tmp/checksums.txt "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_checksums.txt"
-          cd /tmp && grep "${TARBALL}" checksums.txt | sha256sum -c -
-          tar -xzf "/tmp/${TARBALL}" -C /tmp actionlint
-          echo "executable=/tmp/actionlint" >> "$GITHUB_OUTPUT"
-
-      - name: Install dependencies (shellcheck, pyflakes)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck pyflakes3
-          if [ ! -e /usr/bin/pyflakes ]; then
-            sudo ln -s /usr/bin/pyflakes3 /usr/bin/pyflakes
-          fi
-
-      - name: Run actionlint
-        run: |
-          "${{ steps.actionlint.outputs.executable }}" -color
-
-      - name: Reject non-SHA action references in `uses:`
-        # 外部 Action をブランチ・タグ参照すると、上流のリポジトリリネームや
-        # タグ付け替えで startup_failure や不意の破壊的変更・供給網攻撃を
-        # 取り込むリスクがある。コミット SHA (40桁) でのピン留めを CI で強制する。
-        #
-        # grep のパターンには 3 つの工夫を入れている:
-        #  1. `u[s]es` で `uses` リテラルを文字クラスに分解 → 本ステップ自身
-        #     が自分の検出パターンに hit するのを防ぐ（self-match 回避）。
-        #  2. 行頭アンカー `^[[:space:]]*-?[[:space:]]*` で YAML キー位置に
-        #     限定し、コメントや文字列内の偶発的な `uses:` を除外。加えて
-        #     `--include='*.yml' --include='*.yaml'` で対象拡張子を絞る。
-        #  3. キー・値を囲むクオート（`"..."` / `'...'`）を任意でマッチさせる
-        #     → `uses: "owner/repo@main"` のようなクオート記法での
-        #     ガードバイパスを防ぐ（YAML 上いずれも有効な記法のため）。
-        run: |
-          set -euo pipefail
-          refs=$(grep -rEn \
-            --include='*.yml' --include='*.yaml' \
-            -e "^[[:space:]]*-?[[:space:]]*[\"']?u[s]es[\"']?[[:space:]]*:[[:space:]]+[\"']?[^@[:space:]\"']+@[^[:space:]\"'#]+" \
-            .github/workflows || true)
-          violations=$(printf '%s\n' "$refs" | grep -Ev "@[0-9a-fA-F]{40}([\"'[:space:]]|#|$)" | grep -v '^$' || true)
-          if [ -n "$violations" ]; then
-            echo "::error::外部 Action 参照がコミット SHA でピン留めされていません:"
-            echo "$violations"
-            echo ""
-            echo "修正方法: \`uses: owner/repo@<40桁SHA> # v1.2.3\` の形式に書き換える。"
-            exit 1
-          fi
-          echo "✅ 全ての外部 Action 参照がコミット SHA でピン留めされています。"
-
-      - name: Reject pull_request_target
-        run: |
-          set -euo pipefail
-          violations=$(grep -rEn \
-            --include='*.yml' --include='*.yaml' \
-            -e "^[[:space:]]*[\"']?pull_request_targ[e]t[\"']?[[:space:]]*:" \
-            -e "^[[:space:]]*[\"']?on[\"']?[[:space:]]*:[[:space:]]*\[[^]]*pull_request_targ[e]t[^]]*\]" \
-            .github/workflows || true)
-          if [ -n "$violations" ]; then
-            echo "::error::フォークPRからのシークレット漏洩リスクがあるため、pull_request_target の使用は禁止されています:"
-            echo "$violations"
-            echo ""
-            echo "修正方法: 通常の \`pull_request\` トリガーを使用してください。"
-            exit 1
-          fi
-          echo "✅ pull_request_target の使用はありません。"
+    uses: genzouw/ci-workflows/.github/workflows/actionlint.yml@28d2b9b6f563eb1126e786f28e308390b2558a47 # v1.0.1
