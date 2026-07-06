@@ -2,21 +2,17 @@ name: markdownlint
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
     paths:
       - "**/*.md"
       - ".markdownlint-cli2.jsonc"
       - ".github/workflows/markdownlint.yml"
   pull_request:
-    branches: [main]
+    branches: [main, master]
     paths:
       - "**/*.md"
       - ".markdownlint-cli2.jsonc"
       - ".github/workflows/markdownlint.yml"
-  # Actions allowlist 適用前の startup_failure や、依存 action 側の
-  # 一時的な障害から復旧した際に、md ファイルを触らずに lint を再走させたい
-  # ケースがあるため手動トリガーを用意する。
-  workflow_dispatch:
 
 concurrency:
   group: markdownlint-${{ github.ref }}
@@ -29,7 +25,7 @@ jobs:
   markdownlint:
     name: markdownlint-cli2
     runs-on: ubuntu-latest
-    # 既存ドキュメントの MD040/MD031 違反を片付けるまでは赤検知にしない。
+    # 既存ドキュメントの違反を片付けるまでは赤検知にしない。
     # 整備完了後に continue-on-error を外して赤検知に切り替える。
     continue-on-error: true
     steps:
@@ -38,7 +34,9 @@ jobs:
           persist-credentials: false
 
       - name: Run markdownlint-cli2
-        uses: DavidAnson/markdownlint-cli2-action@992badcdf24e3b8eb7e87ff9287fe931bcb00c6e # v20
+        # v23.x 以降は Node.js 24 ランタイム要求のため startup_failure する。
+        # GitHub Actions runner が node24 を正式サポートするまで v22.0.0 で固定する。
+        uses: DavidAnson/markdownlint-cli2-action@07035fd053f7be764496c0f8d8f9f41f98305101 # v22.0.0
         with:
           config: ".markdownlint-cli2.jsonc"
           globs: "**/*.md"

@@ -2,15 +2,15 @@ name: actionlint
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
     paths:
-      - '.github/workflows/**'
-      - '.github/actionlint*'
+      - ".github/workflows/**"
+      - ".github/actionlint*"
   pull_request:
-    branches: [main]
+    branches: [main, master]
     paths:
-      - '.github/workflows/**'
-      - '.github/actionlint*'
+      - ".github/workflows/**"
+      - ".github/actionlint*"
 
 concurrency:
   group: actionlint-${{ github.ref }}
@@ -52,41 +52,43 @@ jobs:
         run: |
           "${{ steps.actionlint.outputs.executable }}" -color
 
-      - name: Reject mutable branch references in `uses:`
-        # 外部 Action を `@main` 等のブランチ追跡で参照すると、上流のリポジトリ
-        # リネーム時に `startup_failure` を起こす（cf. PR #137 で発生）ほか、
-        # 不意な破壊的変更を取り込むリスクがある。可変ブランチ参照を禁止し、
-        # コミット SHA でのピン留めを CI で強制する。
-        # （タグ参照 `@v1` の検出は zizmor 等の専用ツールに任せ、ここでは
-        #  実害の大きいブランチ参照のみを最小コストで弾く方針）
+      - name: Reject non-SHA action references in `uses:`
+        # 外部 Action をブランチ・タグ参照すると、上流のリポジトリリネームや
+        # タグ付け替えで startup_failure や不意の破壊的変更・供給網攻撃を
+        # 取り込むリスクがある。コミット SHA (40桁) でのピン留めを CI で強制する。
         #
-        # grep のパターンには 2 つの工夫を入れている:
-        #  1. `u[s]es:` で `uses:` リテラルを文字クラスに分解 → 本ステップ自身
+        # grep のパターンには 3 つの工夫を入れている:
+        #  1. `u[s]es` で `uses` リテラルを文字クラスに分解 → 本ステップ自身
         #     が自分の検出パターンに hit するのを防ぐ（self-match 回避）。
         #  2. 行頭アンカー `^[[:space:]]*-?[[:space:]]*` で YAML キー位置に
         #     限定し、コメントや文字列内の偶発的な `uses:` を除外。加えて
         #     `--include='*.yml' --include='*.yaml'` で対象拡張子を絞る。
+        #  3. キー・値を囲むクオート（`"..."` / `'...'`）を任意でマッチさせる
+        #     → `uses: "owner/repo@main"` のようなクオート記法での
+        #     ガードバイパスを防ぐ（YAML 上いずれも有効な記法のため）。
         run: |
           set -euo pipefail
-          violations=$(grep -rEn \
+          refs=$(grep -rEn \
             --include='*.yml' --include='*.yaml' \
-            '^[[:space:]]*-?[[:space:]]*u[s]es:[[:space:]]+[^@[:space:]]+@(main|master|develop|trunk|HEAD)([[:space:]]|$)' \
+            -e "^[[:space:]]*-?[[:space:]]*[\"']?u[s]es[\"']?[[:space:]]*:[[:space:]]+[\"']?[^@[:space:]\"']+@[^[:space:]\"'#]+" \
             .github/workflows || true)
+          violations=$(printf '%s\n' "$refs" | grep -Ev "@[0-9a-fA-F]{40}([\"'[:space:]]|#|$)" | grep -v '^$' || true)
           if [ -n "$violations" ]; then
-            echo "::error::外部 Action 参照に可変ブランチが使われています。コミット SHA でピン留めしてください:"
+            echo "::error::外部 Action 参照がコミット SHA でピン留めされていません:"
             echo "$violations"
             echo ""
             echo "修正方法: \`uses: owner/repo@<40桁SHA> # v1.2.3\` の形式に書き換える。"
             exit 1
           fi
-          echo "✅ 全ての外部 Action 参照がブランチ追跡を回避できています。"
+          echo "✅ 全ての外部 Action 参照がコミット SHA でピン留めされています。"
 
       - name: Reject pull_request_target
         run: |
           set -euo pipefail
           violations=$(grep -rEn \
             --include='*.yml' --include='*.yaml' \
-            '^[[:space:]]*pull_request_targ[e]t:' \
+            -e "^[[:space:]]*[\"']?pull_request_targ[e]t[\"']?[[:space:]]*:" \
+            -e "^[[:space:]]*[\"']?on[\"']?[[:space:]]*:[[:space:]]*\[[^]]*pull_request_targ[e]t[^]]*\]" \
             .github/workflows || true)
           if [ -n "$violations" ]; then
             echo "::error::フォークPRからのシークレット漏洩リスクがあるため、pull_request_target の使用は禁止されています:"
