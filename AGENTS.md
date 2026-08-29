@@ -51,7 +51,7 @@
 - **MAY**: GitHub Marketplace の「公開 OSS リポジトリ向け完全無料プラン」で提供される Action / App。
 - **MAY**: GitHub App の「公開 OSS リポジトリ向け完全無料枠」で、API キーの登録が不要なもの (例: CodeRabbit の OSS 無料枠)。
 - **MAY**: 完全無料で配布されている GitHub Action (Marketplace 登録の有無は問わない)。
-- **MAY**: ローカル LLM (Ollama / llama.cpp 等) を GitHub-hosted runner 上で動作させる、Secrets 不要の自動化。
+- **MAY**: ローカル LLM (Ollama / llama.cpp 等) を標準 GitHub-hosted runner 上で動作させる、Secrets 不要の自動化 (larger runner は public リポジトリでも課金対象となるため対象外)。
 - **MAY**: リポジトリ内で完結するスクリプト / Make ターゲット (外部 SaaS 連携を伴わないもの)。
 - **MAY**: 既存ワークフローのキャッシュ最適化、並列化、Action の SHA pin 更新といった、課金を伴わない構造改善。
 
