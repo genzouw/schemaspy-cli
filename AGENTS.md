@@ -68,7 +68,7 @@
 ## 2. PR を作成する前のチェックリスト (MUST すべて満たす)
 
 - [ ] 追加するサービスが「公開 OSS リポジトリで完全無料で利用可能」であることを、**公式の料金ページ / ドキュメントの URL** で証明している。
-- [ ] LLM プロバイダの API キー / 従量課金 API キーを GitHub Secrets に追加していない。`GEMINI_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` 等を `secrets.*` から参照する記述が新規ファイルに含まれていない。
+- [ ] LLM プロバイダの API キー / 従量課金 API キーを GitHub Secrets に追加していない。`GEMINI_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` 等を `secrets.*` から参照する記述が、新規ファイル・既存ファイルの変更のいずれにも含まれていない（既存の Secrets を新たにワークフローから参照する変更も含む）。
 - [ ] 「無料枠内に収まる前提」の利用ではなく、「課金が一切発生しない構成」であることを PR 本文に明記している。
 - [ ] 追加する GitHub Action は **フルコミット SHA で pin** している。
 - [ ] `.github/workflows/` 配下の既存ワークフローと機能が重複していないことを確認した。
