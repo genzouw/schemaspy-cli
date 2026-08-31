@@ -30,6 +30,10 @@
 - [ ] 既存の lint / typecheck / test がパスする
 - [ ] 破壊的変更がある場合、README または docs を更新した
 - [ ] secret / 個人情報を含むコードや設定が含まれていない
+- [ ] LLM プロバイダや従量課金 API のキーを GitHub Secrets に追加していない。また、課金可能な LLM / 検索 API キーを含む既存の GitHub Secret を、名前や参照構文にかかわらず CI / GitHub Actions から新たに参照・利用していない。
+- [ ] 追加した SaaS / GitHub App / Action は公開 OSS リポジトリで完全無料であり、その根拠となる公式の料金ページ / ドキュメント URL を本文に記載した。無料枠を超過しても課金が発生しない構成であること、GitHub Actions を利用する場合は標準 GitHub-hosted runner のみを使用する（larger runner を使用しない）ことを確認した（外部サービスを追加していない場合はチェック可）
+- [ ] 新規 Secret が必要な場合は、本 PR を作成する前に Issue で提案・合意を得ている。リポジトリオーナーへ新規 Secret の登録を直接依頼していない
+- [ ] [`AGENTS.md`](AGENTS.md) のポリシーに違反していないことを確認した
 
 ## 補足
 
