@@ -58,7 +58,7 @@
 ### 1.4 ローカル環境と CI の区別
 
 本ポリシーが禁止しているのは **CI/CD および自動化ワークフローへの組み込み** です。
-開発者個人のローカル環境で、自分のアカウント・自分の負担で AI ツール (Claude Code / Cursor / Antigravity CLI（agy）等) を使うことは **MAY** です。
+開発者個人のローカル環境で、自分のアカウント・自分の負担で AI ツール (Claude Code / Cursor / Antigravity CLI (agy) 等) を使うことは **MAY** です。
 
 `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` などを自分のシェルの環境変数として `export` して使うことは **MAY** です。
 一方、同じ鍵を GitHub Secrets へ登録し CI から参照することは **MUST NOT** です。
