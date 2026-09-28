@@ -3,7 +3,7 @@
 本ドキュメントは、自律型コーディングエージェント (Jules / Devin / Codex / Claude Code / GitHub Copilot / Cursor / Cline / Windsurf / Aider / Sweep / PR-Agent 等) が、公開 OSS リポジトリ [`genzouw/schemaspy-cli`](https://github.com/genzouw/schemaspy-cli) で作業し Pull Request を作成するときに **必ず守るべき規範** を定義します。
 キーワードの解釈は [RFC 2119](https://www.ietf.org/rfc/rfc2119.txt) ([日本語訳](https://www.nic.ad.jp/ja/tech/ipa/RFC2119JA.html)) に従います (MUST / MUST NOT / SHOULD / SHOULD NOT / MAY)。
 
-このファイルは [agents.md 規格](https://agents.md/) に従って配置しています。Jules や Codex などはこのファイルをリポジトリルートから自動的に読み込みます。それ以外のエージェント (Aider は `.aider.conf.yml`、Gemini CLI は `.gemini/settings.json` 等) では、`AGENTS.md` を読み込むよう別途設定が必要な場合があるため、利用するエージェントのドキュメントを確認してください。
+このファイルは [agents.md 規格](https://agents.md/) に従って配置しています。Jules や Codex などはこのファイルをリポジトリルートから自動的に読み込みます。それ以外のエージェント (Aider は `.aider.conf.yml` 等) では、`AGENTS.md` を読み込むよう別途設定が必要な場合があるため、利用するエージェントのドキュメントを確認してください。
 
 ---
 
@@ -58,7 +58,7 @@
 ### 1.4 ローカル環境と CI の区別
 
 本ポリシーが禁止しているのは **CI/CD および自動化ワークフローへの組み込み** です。
-開発者個人のローカル環境で、自分のアカウント・自分の負担で AI ツール (Claude Code / Cursor / Gemini CLI 等) を使うことは **MAY** です。
+開発者個人のローカル環境で、自分のアカウント・自分の負担で AI ツール (Claude Code / Cursor / Antigravity CLI (agy) 等) を使うことは **MAY** です。
 
 `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` などを自分のシェルの環境変数として `export` して使うことは **MAY** です。
 一方、同じ鍵を GitHub Secrets へ登録し CI から参照することは **MUST NOT** です。
