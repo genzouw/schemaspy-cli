@@ -10,7 +10,7 @@
   "schedule": [
     "* 9-11 * * *"
   ],
-  "minimumReleaseAge": "1 day",
+  "minimumReleaseAge": "3 days",
   "minimumReleaseAgeBehaviour": "timestamp-optional",
   "prConcurrentLimit": 5,
   "labels": [
