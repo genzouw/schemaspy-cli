@@ -1,0 +1,27 @@
+name: renovate-config-validator
+
+# 本ワークフローは genzouw/ci-workflows の reusable workflow を呼び出す薄いスタブ。
+# ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
+# 参照 SHA の更新は Renovate (github-actions manager) が自動で PR を出す。
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - '.github/renovate.json'
+      - '.github/workflows/renovate-config-validator.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - '.github/renovate.json'
+      - '.github/workflows/renovate-config-validator.yml'
+
+concurrency:
+  group: renovate-config-validator-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  renovate-config-validator:
+    uses: genzouw/ci-workflows/.github/workflows/renovate-config-validator.yml@3223ebdaffdf89c60ee0bdf615f76ee8037a1c83 # v1.5.0
