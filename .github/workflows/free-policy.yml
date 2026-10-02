@@ -1,0 +1,24 @@
+name: free-policy
+
+# 本ワークフローは genzouw/ci-workflows の reusable workflow を呼び出す薄いスタブ。
+# ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
+# 参照 SHA の更新は Renovate (github-actions manager) が自動で PR を出す。
+# 将来 必須チェック (context: "free-policy / Free-only policy check") にする想定のため
+# paths フィルタは付けない (フィルタで skip されると context が報告されずマージできなくなる)。
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: free-policy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  free-policy:
+    # enforce は既定の true。AGENTS.md 1 章の違反を検出した PR は job が失敗する。
+    uses: genzouw/ci-workflows/.github/workflows/free-policy.yml@3223ebdaffdf89c60ee0bdf615f76ee8037a1c83 # v1.5.0
