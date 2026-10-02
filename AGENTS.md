@@ -63,12 +63,44 @@
 `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` などを自分のシェルの環境変数として `export` して使うことは **MAY** です。
 一方、同じ鍵を GitHub Secrets へ登録し CI から参照することは **MUST NOT** です。
 
+### 1.5 CI による自動検出範囲
+
+`.github/workflows/free-policy.yml` (実体は [`genzouw/ci-workflows`](https://github.com/genzouw/ci-workflows) の reusable workflow) が、本ポリシーのうち構文的に判定できる違反を検出します。走査対象は次のファイルに限られます。
+
+- `.github/` 配下の YAML / JSON (`*.yml` / `*.yaml` / `*.json` / `*.json5`)
+- リポジトリルート直下の Renovate 設定 (`renovate.json` / `renovate.json5` / `.renovaterc` / `.renovaterc.json` / `.renovaterc.json5`)
+- composite action 定義 (`action.yml` / `action.yaml`)
+
+#### CI が自動検出するもの
+
+| 検出内容                                                                                | 対応する MUST NOT                      |
+| --------------------------------------------------------------------------------------- | -------------------------------------- |
+| `GITHUB_TOKEN` 以外の `secrets.*` 参照、および `secrets: inherit`                       | LLM / 従量課金 API キーの Secrets 登録 |
+| 従量課金 API キーを示す変数名 (`*_API_KEY` / `*_API_TOKEN` / プロバイダ名付きの鍵・URL) | 同上 (`vars.*` や平文での指定も含む)   |
+| 課金可能な LLM / 検索 API のエンドポイントホスト名                                      | OpenAI 互換エンドポイント経由での利用  |
+
+`secrets.*` はホワイトリスト方式です。本リポジトリは `GITHUB_TOKEN` 以外の Secrets を一切使っていないため、**`GITHUB_TOKEN` 以外の参照はすべて違反として検出** されます。正当な例外が必要な場合は、対象行に `free-policy: allow <理由>` を含むコメントを書いて除外し、その理由を PR 本文にも記載してください。
+
+#### CI が自動検出しないもの (レビューで判断します)
+
+- 有料プラン / 有料ライセンス / 有料トライアル / クレジットカード登録を必要とするサービスの導入
+- 公開 OSS リポジトリでも Pro プラン以上を要求する SaaS の追加
+- リポジトリオーナーへの新規 Secret 発行依頼
+- そのサービスが「無料枠」型かどうかの判定
+- 既存テスト / lint / セキュリティスキャンのスキップ・無効化
+- 既に導入済みのツールとの機能重複
+
+いずれも意味的な判断が必要で、CI では誤検知・見逃しの両方が避けられないため実装していません。これらは PR 本文での説明 (3 章) とレビューでカバーします。
+
+> **運用に関する注記**: `free-policy` チェック (context: `free-policy / Free-only policy check`) は違反を検出すると **job が失敗** します (`enforce: true`)。現時点では `main` ブランチ保護の必須ステータスチェックではないため、失敗してもマージ自体はブロックされません。違反が出ている PR は、原因を取り除くか `free-policy: allow <理由>` マーカーで除外してチェックを成功させてから、レビュー・マージすること。
+
 ---
 
 ## 2. PR を作成する前のチェックリスト (MUST すべて満たす)
 
 - [ ] 追加するサービスが「公開 OSS リポジトリで完全無料で利用可能」であることを、**公式の料金ページ / ドキュメントの URL** で証明している。
 - [ ] LLM プロバイダや従量課金 API のキーを GitHub Secrets に追加していない。また、課金可能な LLM / 検索 API キーを含む既存の GitHub Secret を、名前や参照構文にかかわらず CI / GitHub Actions から新たに参照・利用していない。
+- [ ] `free-policy` チェックが成功している。例外として `free-policy: allow <理由>` マーカーを追加した場合は、その理由を PR 本文に記載している。
 - [ ] 「無料枠内に収まる前提」の利用ではなく、「課金が一切発生しない構成」であることを PR 本文に明記している。
 - [ ] 追加する GitHub Action は **フルコミット SHA で pin** している。
 - [ ] `.github/workflows/` 配下の既存ワークフローと機能が重複していないことを確認した。
