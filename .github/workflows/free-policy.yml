@@ -21,4 +21,4 @@ permissions:
 jobs:
   free-policy:
     # enforce は既定の true。AGENTS.md 1 章の違反を検出した PR は job が失敗する。
-    uses: genzouw/ci-workflows/.github/workflows/free-policy.yml@458d24cd2f85f1e66c35cfb0de42d2d425909a6d # v1.5.5
+    uses: genzouw/ci-workflows/.github/workflows/free-policy.yml@df797c6bf62f8bbcfc4c0ccb9325e06bd5da8f01 # v1.5.6
