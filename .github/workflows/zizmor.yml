@@ -21,4 +21,4 @@ permissions:
 
 jobs:
   zizmor:
-    uses: genzouw/ci-workflows/.github/workflows/zizmor.yml@ec36aa3428c2a67abc3dcf5585599a36f5685d29 # v1.5.16
+    uses: genzouw/ci-workflows/.github/workflows/zizmor.yml@197e09c1418fd2e660bb24684c076ecb3463e7ac # v1.5.18
